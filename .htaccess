@@ -1,0 +1,12 @@
+RewriteEngine On
+
+# Some hosts may require you to use the `RewriteBase` directive.
+# If you need to use the `RewriteBase` directive, it should be the
+# absolute physical path to the directory that contains this htaccess file.
+#
+# RewriteBase /
+
+RewriteRule ^assets/(.*)$ - [QSA,L,NC]
+RewriteRule ^repositories/[a-zA-Z0-9_\-]+/packages\.json$ - [QSA,L,NC]
+RewriteRule ^repositories/[a-zA-Z0-9_\-]+/dists/.+$ - [QSA,L,NC]
+RewriteRule ^.*$ index.php [QSA,L,NC]
