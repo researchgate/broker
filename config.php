@@ -7,8 +7,5 @@
 * For the full copyright and license information, please view the LICENSE
 * file that was distributed with this source code.
 */
-require __DIR__ . '/config.php';
-require __DIR__ . '/vendor/autoload.php';
-
-$application = new \rg\broker\web\Application();
-$application->run();
+define('ROOT', __DIR__);
+define('ROOTURL', 'http://localhost:8080/broker');

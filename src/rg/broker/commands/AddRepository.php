@@ -1,4 +1,12 @@
 <?php
+/*
+ * This file is part of rg\broker.
+ *
+ * (c) ResearchGate GmbH <bastian.hofmann@researchgate.net>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace rg\broker\commands;
 
 use Symfony\Component\Console\Input\InputInterface;
@@ -48,18 +56,8 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         $composer->setLocker(new \rg\broker\customizations\Locker());
         $composer->getDownloadManager()->setDownloader('pear', new \rg\broker\customizations\PearDownloader($io));
 
-        $installCommand = new \Composer\Command\InstallCommand();
-        $eventDispatcher = new \Composer\Script\EventDispatcher($composer, $io);
-        $installCommand->install(
-            $io,
-            $composer,
-            $eventDispatcher,
-            false,
-            false,
-            false,
-            false,
-            true
-        );
+        $installer = \Composer\Installer::create($io, $composer);
+        $installer->run();
 
         $packages = array();
         $dumper = new \Composer\Package\Dumper\ArrayDumper();
@@ -92,6 +90,10 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         $packageArray = $dumper->dump($package);
         unset($packageArray['source']);
         unset($packageArray['dist']);
+	    if ($package->isDev()) {
+            $packageArray['version'] = 'master';
+            $packageArray['version_normalized'] = $packageArray['version'];
+        }
         $packageArray['dist'] = array(
             'type' => 'zip',
             'url' => ROOTURL . '/repositories/' . $repositoryName . '/dists/' . $zipfileName . '.zip',
@@ -139,7 +141,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
      * @throws \Exception
      */
     protected function getInstalledPackages($repositoryDir) {
-        $file = new \Composer\Json\JsonFile($repositoryDir . '/sources/.composer/installed.json');
+        $file = new \Composer\Json\JsonFile($repositoryDir . '/sources/composer/installed.json');
         if (!$file->exists()) {
             throw new \Exception('no packages installed in repository');
         }

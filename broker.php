@@ -1,11 +1,16 @@
 <?php
+/*
+* This file is part of rg\broker.
+*
+* (c) ResearchGate GmbH <bastian.hofmann@researchgate.net>
+*
+* For the full copyright and license information, please view the LICENSE
+* file that was distributed with this source code.
+*/
+require __DIR__ . '/config.php';
+require __DIR__ . '/vendor/autoload.php';
 
-define('ROOT', __DIR__);
-define('ROOTURL', 'http://localhost:8888/Checkouts/broker');
-
-require __DIR__ . '/vendor/.composer/autoload.php';
-
-$cli = new \Symfony\Component\Console\Application('rg\broker', '1.0.0');
+$cli = new \Symfony\Component\Console\Application('rg\broker', '0.1.0');
 $cli->setCatchExceptions(true);
 
 $cli->addCommands(array(

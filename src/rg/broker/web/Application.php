@@ -1,4 +1,12 @@
 <?php
+/*
+ * This file is part of rg\broker.
+ *
+ * (c) ResearchGate GmbH <bastian.hofmann@researchgate.net>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace rg\broker\web;
 
 class Application {
@@ -78,7 +86,7 @@ class Application {
      */
     public function getPackage($repositoryName, $packageName) {
         $repository = $this->getRepository($repositoryName);
-        $packages = $repository->findPackagesByName($packageName);
+        $packages = $repository->findPackages($packageName);
         if (!$packages) {
             $this->app->redirect(ROOTURL . '/' . $repositoryName);
         }

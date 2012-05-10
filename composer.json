@@ -3,7 +3,6 @@
     "description":"Simple composer repository proxy",
     "keywords":["package", "repository", "proxy"],
     "homepage":"https://github.com/researchgate/broker",
-    "version": "0.1.0",
     "license":"Apache License 2.0",
     "authors":[
         {
@@ -12,29 +11,16 @@
             "homepage":"http://bastianhofmann.de"
         }
     ],
-    "repositories": {
-        "slim": {
-            "package": {
-                "name":"codeguy/slim",
-                "version":"1.5.1.5",
-                "source": {
-                    "url": "git://github.com/codeguy/Slim.git",
-                    "type": "git",
-                    "reference": "1.5.1.5"
-                }
-            }
-        }
-    },
     "require":{
         "php":">=5.3.2",
-        "symfony/console":"2.0.10",
+        "symfony/console":"*",
         "composer/composer":"*",
-        "codeguy/slim":"1.5.1.5",
-        "dflydev/markdown":"master-dev"
+        "slim/slim":"1.6.2",
+        "dflydev/markdown":"dev-master"
     },
     "autoload":{
         "psr-0":{
-            "rg\\broker":"/src"
+            "rg":"src/"
         }
     }
 }
