@@ -97,6 +97,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
 	    if ($package->isDev()) {
             $packageArray['version'] = str_replace('-dev', '', $packageArray['version']);
             $packageArray['version'] = str_replace('dev-', '', $packageArray['version']);
+            $packageArray['version'] = str_replace('x', '9999999', $packageArray['version']);
             $packageArray['version_normalized'] = $packageArray['version'];
         }
 
