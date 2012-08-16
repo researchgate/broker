@@ -1,5 +1,5 @@
 {
-    "hash": "6916c720e664061e7a2471105143f60e",
+    "hash": "d380183d2c0721b6b040daf336c1acab",
     "packages": [
         {
             "package": "composer/composer",
@@ -10,8 +10,8 @@
         {
             "package": "composer/composer",
             "version": "dev-master",
-            "source-reference": "a2171e2ed1a6f9a8125163cb05947294d67cd4c0",
-            "commit-date": "1345108950"
+            "source-reference": "de4e9c4022fb68f2f6bb79e0ed56e4ae8afdd6b7",
+            "commit-date": "1345048183"
         },
         {
             "package": "dflydev/markdown",
@@ -74,14 +74,13 @@
             "commit-date": "1343512949"
         }
     ],
-    "packages-dev": [
-
-    ],
+    "packages-dev": null,
     "aliases": [
 
     ],
     "minimum-stability": "dev",
     "stability-flags": {
+        "composer/composer": 20,
         "dflydev/markdown": 20
     }
 }
