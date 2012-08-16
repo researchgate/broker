@@ -14,10 +14,10 @@ class Locker extends \Composer\Package\Locker {
     public function __construct() {
     }
 
-    public function lockPackages($packages) {
+    public function lockPackages(array $packages) {
     }
 
-    public function isLocked() {
+    public function isLocked($dev = false) {
         return false;
     }
 
@@ -25,11 +25,11 @@ class Locker extends \Composer\Package\Locker {
         return false;
     }
 
-    public function getLockedPackages() {
+    public function getLockedPackages($dev = false) {
         return array();
     }
 
-    public function setLockData(array $packages, $devPackages, array $aliases) {
+    public function setLockData(array $packages, $devPackages, array $aliases, $minimumStability, array $stabilityFlags) {
 
     }
 }
