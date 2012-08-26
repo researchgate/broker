@@ -1,4 +1,5 @@
 {
+    "minimum-stability": "dev",
     "name": "rg/broker",
     "description":"Simple composer repository proxy",
     "keywords":["package", "repository", "proxy"],
