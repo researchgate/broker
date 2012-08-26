@@ -53,12 +53,13 @@ Using a broker repository in your project
 
 Just add the following repository reference to your project's composer.json file
 
-    "repositories":{
-        "packagist": false,
-        "repository_name": {
-            "composer": {
-                "url": "http://url/to/broker/repositories/repository_name"
-            }
+    "repositories":[
+        {
+            "packagist": false
+        },
+        {
+            "type": "composer",
+            "url": "http://url/to/broker/repositories/repository_name"
         }
-    },
+    ],
 
