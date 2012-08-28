@@ -9,6 +9,8 @@
  */
 namespace rg\broker\commands;
 
+use rg\broker\customizations\ZipArchive;
+
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -138,14 +140,33 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
             $rootPath = $repositoryDir . '/sources/' . $package->getPrettyName();
             $zipPath = '.';
         }
-        $command = 'cd ' . escapeshellarg($rootPath) .
-            ' && zip -9 -r ' . escapeshellarg($repositoryDir . '/dists/' . $zipfileName . '.zip') . ' ' . $zipPath;
-        $output->writeln('Executing: ' . $command);
-        $result = $process->execute($command);
 
-        if ($result) {
-            throw new \Exception('could not create dist package for ' . $package->getName());
+        if (!class_exists('ZipArchive')) {
+            $command = 'cd ' . escapeshellarg($rootPath) .
+                ' && zip -9 -r ' . escapeshellarg($repositoryDir . '/dists/' . $zipfileName . '.zip') . ' ' . $zipPath;
+            $output->writeln('Executing: ' . $command);
+            $result = $process->execute($command);
+
+            if ($result) {
+                throw new \Exception('could not create dist package for ' . $package->getName());
+            }
+        } else {
+            $zipFile = $repositoryDir . '/dists/' . $zipfileName . '.zip';
+            $output->writeln("Use PHP ZipArchive to create Zip Archive: $zipFile");
+            
+            $zipArchive = new ZipArchive();
+            $zipArchive->addExcludeDirectory('.svn');
+            $zipArchive->setArchiveBaseDir($rootPath);
+
+            if (($result = $zipArchive->open($zipFile, ZipArchive::OVERWRITE)) === TRUE) {
+                $zipArchive->addDir($rootPath);
+                
+                $zipArchive->close();
+            } else {
+                throw new \Exception('could not create dist package for ' . $package->getName() . ' error code: ' . $result);
+            }
         }
+
         return $zipfileName;
     }
 
