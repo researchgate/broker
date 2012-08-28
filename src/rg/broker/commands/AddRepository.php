@@ -90,7 +90,14 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
                                        \Composer\Package\PackageInterface $package,
                                        $zipfileName) {
         $packageArray = $dumper->dump($package);
-        $reference = $packageArray['dist']['reference'];
+	if (!empty($packageArray['dist']['reference'])) {
+            $reference = $packageArray['dist']['reference'];
+	} else if (!empty($packageArray['source']['reference'])) {
+	    $reference = $packageArray['source']['reference'];
+	} else {
+	    throw new \Exception("No reference found");
+	}
+
         unset($packageArray['source']);
         unset($packageArray['dist']);
 
