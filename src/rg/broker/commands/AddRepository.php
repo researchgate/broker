@@ -19,6 +19,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
     protected function configure() {
         $this
             ->setName('broker:add')
+            ->setAliases(array('broker:build'))
             ->setDescription('adds a new repository based on a composer json file')
             ->setDefinition(array(
                 new \Symfony\Component\Console\Input\InputArgument('name', \Symfony\Component\Console\Input\InputArgument::REQUIRED),
