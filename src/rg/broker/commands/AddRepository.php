@@ -59,6 +59,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         $composer->getDownloadManager()->setDownloader('pear', new \rg\broker\customizations\PearDownloader($io));
 
         $installer = \Composer\Installer::create($io, $composer);
+        $installer->setRunScripts(false);
         $installer->run();
 
         $packages = array();
