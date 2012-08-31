@@ -120,6 +120,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
             'type' => 'zip',
             'url' => ROOTURL . '/repositories/' . $repositoryName . '/dists/' . $zipfileName . '.zip',
             'reference' => $reference,
+            'shasum' => hash_file('sha1', ROOT . '/repositories/' . $repositoryName . '/dists/' . $zipfileName . '.zip'),
         );
         return $packageArray;
     }
