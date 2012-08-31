@@ -70,7 +70,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
             $package = $composer->getRepositoryManager()->findPackage($installedPackage['name'], $installedPackage['version']);
             $zipfileName = $this->createZipFile($repositoryDir, $package, $output, $processExecutor);
             $packageArray = $this->getPackageArray($repositoryName, $dumper, $package, $zipfileName);
-            $packages[$package->getName()]['versions'][$package->getVersion()] = $packageArray;
+            $packages['packages'][$package->getName()][$package->getVersion()] = $packageArray;
         }
 
         $output->writeln('Writing packages.json');
