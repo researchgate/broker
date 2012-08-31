@@ -105,27 +105,13 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         unset($packageArray['source']);
         unset($packageArray['dist']);
 
-        // we have to manipulate the version to not have a dev prefix or suffix so that
-        // composer does not try to load the package from source but will load it from dist instead
-	    if ($package->isDev()) {
-            $packageArray['version'] = str_replace('-dev', '', $packageArray['version']);
-            $packageArray['version'] = str_replace('dev-', '', $packageArray['version']);
-            $packageArray['version'] = str_replace('x', '9999999', $packageArray['version']);
-            $packageArray['version_normalized'] = $packageArray['version'];
-        }
-
-        foreach ($packageArray['require'] as $requiredPackage => $requiredVersion) {
-            if ($requiredPackage === 'php') {
-                continue;
-            }
-            $packageArray['require'][$requiredPackage] = '*';
-        }
         $packageArray['dist'] = array(
             'type' => 'zip',
             'url' => ROOTURL . '/repositories/' . $repositoryName . '/dists/' . $zipfileName . '.zip',
             'reference' => $reference,
             'shasum' => hash_file('sha1', ROOT . '/repositories/' . $repositoryName . '/dists/' . $zipfileName . '.zip'),
         );
+
         return $packageArray;
     }
 
