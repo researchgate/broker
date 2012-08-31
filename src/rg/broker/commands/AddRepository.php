@@ -24,6 +24,8 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
             ->setDefinition(array(
                 new \Symfony\Component\Console\Input\InputArgument('name', \Symfony\Component\Console\Input\InputArgument::REQUIRED),
                 new \Symfony\Component\Console\Input\InputArgument('composerUrl', \Symfony\Component\Console\Input\InputArgument::REQUIRED),
+                new \Symfony\Component\Console\Input\InputOption('base-dir', null, InputOption::VALUE_REQUIRED, 'Where to put generated files (packages.json and dists)?', ROOT . '/repositories/'),
+                new \Symfony\Component\Console\Input\InputOption('base-url', null, InputOption::VALUE_REQUIRED, 'Base URL used when accessing packages.json and dists', ROOTURL . '/repositories/'),
             ))
             ->setHelp('adds a new repository based on a composer json file');
     }
@@ -37,7 +39,8 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
 
         $composerUrl = $input->getArgument('composerUrl');
         $repositoryName = $input->getArgument('name');
-        $repositoryDir = ROOT . '/repositories/' . $repositoryName;
+        $repositoryDir = rtrim($input->getOption('base-dir'), '/') . '/'. $repositoryName;
+        $repositoryUrl = rtrim($input->getOption('base-url'), '/') . '/'. $repositoryName;
 
         $output->writeln('Creating repository ' . $repositoryName);
 
@@ -71,7 +74,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
             /** @var \Composer\Package\PackageInterface $package  */
             $package = $composer->getRepositoryManager()->findPackage($installedPackage['name'], $installedPackage['version']);
             $zipfileName = $this->createZipFile($repositoryDir, $package, $output, $processExecutor);
-            $packageArray = $this->getPackageArray($repositoryName, $dumper, $package, $zipfileName);
+            $packageArray = $this->getPackageArray($repositoryDir, $repositoryUrl, $dumper, $package, $zipfileName);
             $packages['packages'][$package->getName()][$package->getVersion()] = $packageArray;
         }
 
@@ -84,13 +87,15 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
     }
 
     /**
-     * @param string $repositoryName
+     * @param string $repositoryDir
+     * @param string $repositoryUrl
      * @param \Composer\Package\Dumper\ArrayDumper $dumper
      * @param \Composer\Package\PackageInterface $package
      * @param string $zipfileName
      * @return array
      */
-    protected function getPackageArray($repositoryName,
+    protected function getPackageArray($repositoryDir,
+                                       $repositoryUrl,
                                        \Composer\Package\Dumper\ArrayDumper $dumper,
                                        \Composer\Package\PackageInterface $package,
                                        $zipfileName) {
@@ -109,9 +114,9 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
 
         $packageArray['dist'] = array(
             'type' => 'zip',
-            'url' => ROOTURL . '/repositories/' . $repositoryName . '/dists/' . $zipfileName . '.zip',
+            'url' => $repositoryUrl . '/dists/' . $zipfileName . '.zip',
             'reference' => $reference,
-            'shasum' => hash_file('sha1', ROOT . '/repositories/' . $repositoryName . '/dists/' . $zipfileName . '.zip'),
+            'shasum' => hash_file('sha1', $repositoryDir . '/dists/' . $zipfileName . '.zip'),
         );
 
         return $packageArray;
