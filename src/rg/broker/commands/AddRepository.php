@@ -101,6 +101,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
 	    throw new \Exception("No reference found");
 	}
 
+        unset($packageArray['installation-source']);
         unset($packageArray['source']);
         unset($packageArray['dist']);
 
