@@ -76,6 +76,9 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         $output->writeln('Writing packages.json');
         $repoJson = new \Composer\Json\JsonFile($repositoryDir . '/packages.json');
         $repoJson->write($packages);
+
+        // clean up sources
+        $processExecutor->execute('rm -rf ' . escapeshellarg($repositoryDir . '/sources'));
     }
 
     /**
