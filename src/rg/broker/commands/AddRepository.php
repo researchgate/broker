@@ -72,7 +72,11 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         $installer->setRunScripts(false);
         $installer->setPreferDist(true);
         $installer->setUpdate(true);
-        $installer->run();
+
+        if (!$installer->run()) {
+            $output->writeln('Composer installer failed!');
+            return 1;
+        }
 
         if (file_exists($targetDir)) {
             $processExecutor->execute('rm -rf ' . $targetDir);
