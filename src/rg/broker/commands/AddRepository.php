@@ -40,20 +40,24 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
 
         $composerUrl = $input->getArgument('composerUrl');
         $repositoryName = $input->getArgument('name');
-        $repositoryDir = rtrim($input->getOption('base-dir'), '/') . '/'. $repositoryName;
         $repositoryUrl = rtrim($input->getOption('base-url'), '/') . '/'. $repositoryName;
+        $targetDir = rtrim($input->getOption('base-dir'), '/') . '/'. $repositoryName;
+        $cacheDir = ROOT . '/cache/' . $repositoryName;
 
         $output->writeln('Creating repository ' . $repositoryName);
 
-        if (file_exists($repositoryDir)) {
-            $processExecutor->execute('rm -rf ' . $repositoryDir);
+        if (!is_dir($cacheDir)) {
+            mkdir($cacheDir, 0777, true);
         }
-        mkdir($repositoryDir, 0777, true);
-        mkdir($repositoryDir . '/sources');
-        mkdir($repositoryDir . '/dists');
 
-        putenv('COMPOSER_VENDOR_DIR=' . $repositoryDir . '/sources');
-        putenv('COMPOSER_BIN_DIR=' . $repositoryDir . '/sources/bin');
+        if (file_exists($targetDir)) {
+            $processExecutor->execute('rm -rf ' . $targetDir);
+        }
+        mkdir($targetDir, 0777, true);
+        mkdir($targetDir . '/dists');
+
+        putenv('COMPOSER_VENDOR_DIR=' . $cacheDir);
+        putenv('COMPOSER_BIN_DIR=' . $cacheDir . '/bin');
 
         $output->writeln('Loading composer file ' . $composerUrl);
 
@@ -65,40 +69,39 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
 
         $installer = \Composer\Installer::create($io, $composer);
         $installer->setRunScripts(false);
+        $installer->setPreferDist(true);
+        $installer->setUpdate(true);
         $installer->run();
 
         $packages = array('packages' => array());
         $dumper = new \Composer\Package\Dumper\ArrayDumper();
 
-        $installedPackages = $this->getInstalledPackages($repositoryDir);
+        $installedPackages = $this->getInstalledPackages($cacheDir);
         $localRepos = new \Composer\Repository\CompositeRepository($composer->getRepositoryManager()->getLocalRepositories());
         foreach ($installedPackages as $installedPackage) {
             /** @var \Composer\Package\PackageInterface $package  */
             $package = $localRepos->findPackage($installedPackage['name'], $installedPackage['version']);
-            $zipfileName = $this->createZipFile($repositoryDir, $package, $output, $processExecutor);
-            $packageArray = $this->getPackageArray($repositoryDir, $repositoryUrl, $dumper, $package, $zipfileName);
+            $zipfileName = $this->createZipFile($cacheDir, $targetDir, $package, $output, $processExecutor);
+            $packageArray = $this->getPackageArray($targetDir, $repositoryUrl, $dumper, $package, $zipfileName);
             $packages['packages'][$package->getPrettyName()][$package->getPrettyVersion()] = $packageArray;
         }
 
         ksort($packages['packages'], SORT_STRING);
 
         $output->writeln('Writing packages.json');
-        $repoJson = new \Composer\Json\JsonFile($repositoryDir . '/packages.json');
+        $repoJson = new \Composer\Json\JsonFile($targetDir . '/packages.json');
         $repoJson->write($packages);
-
-        // clean up sources
-        $processExecutor->execute('rm -rf ' . escapeshellarg($repositoryDir . '/sources'));
     }
 
     /**
-     * @param string $repositoryDir
+     * @param string $targetDir
      * @param string $repositoryUrl
      * @param \Composer\Package\Dumper\ArrayDumper $dumper
      * @param \Composer\Package\PackageInterface $package
      * @param string $zipfileName
      * @return array
      */
-    protected function getPackageArray($repositoryDir,
+    protected function getPackageArray($targetDir,
                                        $repositoryUrl,
                                        \Composer\Package\Dumper\ArrayDumper $dumper,
                                        \Composer\Package\PackageInterface $package,
@@ -120,39 +123,41 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
             'type' => 'zip',
             'url' => $repositoryUrl . '/dists/' . $zipfileName . '.zip',
             'reference' => $reference,
-            'shasum' => hash_file('sha1', $repositoryDir . '/dists/' . $zipfileName . '.zip'),
+            'shasum' => hash_file('sha1', $targetDir . '/dists/' . $zipfileName . '.zip'),
         );
 
         return $packageArray;
     }
 
     /**
-     * @param string $repositoryDir
+     * @param string $cacheDir
+     * @param string $targetDir
      * @param \Composer\Package\PackageInterface $package
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @param \Composer\Util\ProcessExecutor $process
      * @return string
      * @throws \Exception
      */
-    protected function createZipFile($repositoryDir,
+    protected function createZipFile($cacheDir,
+                                     $targetDir,
                                      \Composer\Package\PackageInterface $package,
                                      OutputInterface $output,
                                      \Composer\Util\ProcessExecutor $process) {
         $zipfileName = str_replace('/', '_', $package->getPrettyName());
         if ($package->getDistType() === 'pear') {
-            $rootPath = $repositoryDir . '/sources';
+            $rootPath = $cacheDir;
             $zipPath = escapeshellarg($package->getPrettyName());
         } else if ($package->getTargetDir()) {
-            $rootPath = $repositoryDir . '/sources/' . $package->getPrettyName() . '/' . $package->getTargetDir();
+            $rootPath = $cacheDir . '/' . $package->getPrettyName() . '/' . $package->getTargetDir();
             $zipPath = '.';
         } else {
-            $rootPath = $repositoryDir . '/sources/' . $package->getPrettyName();
+            $rootPath = $cacheDir . '/' . $package->getPrettyName();
             $zipPath = '.';
         }
 
         if (!class_exists('ZipArchive')) {
             $command = 'cd ' . escapeshellarg($rootPath) .
-                ' && zip -9 -r ' . escapeshellarg($repositoryDir . '/dists/' . $zipfileName . '.zip') . ' ' . $zipPath;
+                ' && zip -9 -r ' . escapeshellarg($targetDir . '/dists/' . $zipfileName . '.zip') . ' ' . $zipPath;
             $output->writeln('Executing: ' . $command);
             $result = $process->execute($command);
 
@@ -160,7 +165,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
                 throw new \Exception('could not create dist package for ' . $package->getName());
             }
         } else {
-            $zipFile = $repositoryDir . '/dists/' . $zipfileName . '.zip';
+            $zipFile = $targetDir . '/dists/' . $zipfileName . '.zip';
             $output->writeln("Use PHP ZipArchive to create Zip Archive: $zipFile");
             
             $zipArchive = new ZipArchive();
@@ -180,12 +185,12 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
     }
 
     /**
-     * @param string $repositoryDir
+     * @param string $cacheDir
      * @return array
      * @throws \Exception
      */
-    protected function getInstalledPackages($repositoryDir) {
-        $file = new \Composer\Json\JsonFile($repositoryDir . '/sources/composer/installed.json');
+    protected function getInstalledPackages($cacheDir) {
+        $file = new \Composer\Json\JsonFile($cacheDir . '/composer/installed.json');
         if (!$file->exists()) {
             throw new \Exception('no packages installed in repository');
         }
