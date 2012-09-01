@@ -43,7 +43,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         $repositoryName = $input->getArgument('name');
         $repositoryUrl = rtrim($input->getOption('base-url'), '/') . '/'. $repositoryName;
         $targetDir = rtrim($input->getOption('base-dir'), '/') . '/'. $repositoryName;
-        $cacheDir = rtrim($input->getOption('cache-dir'), '/') . '/'. . $repositoryName;
+        $cacheDir = rtrim($input->getOption('cache-dir'), '/') . '/'. $repositoryName;
 
         $output->writeln('Creating repository ' . $repositoryName);
 
