@@ -25,6 +25,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
             ->setDefinition(array(
                 new \Symfony\Component\Console\Input\InputArgument('name', \Symfony\Component\Console\Input\InputArgument::REQUIRED),
                 new \Symfony\Component\Console\Input\InputArgument('composerUrl', \Symfony\Component\Console\Input\InputArgument::REQUIRED),
+                new InputOption('cache-dir', null, InputOption::VALUE_REQUIRED, 'Where to put cached sources?', ROOT . '/cache/'),
                 new InputOption('base-dir', null, InputOption::VALUE_REQUIRED, 'Where to put generated files (packages.json and dists)?', ROOT . '/repositories/'),
                 new InputOption('base-url', null, InputOption::VALUE_REQUIRED, 'Base URL used when accessing packages.json and dists', ROOTURL . '/repositories/'),
             ))
@@ -42,7 +43,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         $repositoryName = $input->getArgument('name');
         $repositoryUrl = rtrim($input->getOption('base-url'), '/') . '/'. $repositoryName;
         $targetDir = rtrim($input->getOption('base-dir'), '/') . '/'. $repositoryName;
-        $cacheDir = ROOT . '/cache/' . $repositoryName;
+        $cacheDir = rtrim($input->getOption('cache-dir'), '/') . '/'. . $repositoryName;
 
         $output->writeln('Creating repository ' . $repositoryName);
 
