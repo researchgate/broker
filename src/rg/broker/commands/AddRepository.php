@@ -57,12 +57,6 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
             mkdir($cacheDir, 0777, true);
         }
 
-        if (file_exists($targetDir)) {
-            $processExecutor->execute('rm -rf ' . $targetDir);
-        }
-        mkdir($targetDir, 0777, true);
-        mkdir($targetDir . '/dists');
-
         putenv('COMPOSER_VENDOR_DIR=' . $cacheDir);
         putenv('COMPOSER_BIN_DIR=' . $cacheDir . '/bin');
 
@@ -79,6 +73,12 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         $installer->setPreferDist(true);
         $installer->setUpdate(true);
         $installer->run();
+
+        if (file_exists($targetDir)) {
+            $processExecutor->execute('rm -rf ' . $targetDir);
+        }
+        mkdir($targetDir, 0777, true);
+        mkdir($targetDir . '/dists');
 
         $packages = array('packages' => array());
         $dumper = new \Composer\Package\Dumper\ArrayDumper();
