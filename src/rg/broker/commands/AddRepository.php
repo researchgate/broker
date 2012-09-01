@@ -12,6 +12,7 @@ namespace rg\broker\commands;
 use rg\broker\customizations\ZipArchive;
 
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class AddRepository extends \Symfony\Component\Console\Command\Command {
@@ -24,8 +25,8 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
             ->setDefinition(array(
                 new \Symfony\Component\Console\Input\InputArgument('name', \Symfony\Component\Console\Input\InputArgument::REQUIRED),
                 new \Symfony\Component\Console\Input\InputArgument('composerUrl', \Symfony\Component\Console\Input\InputArgument::REQUIRED),
-                new \Symfony\Component\Console\Input\InputOption('base-dir', null, InputOption::VALUE_REQUIRED, 'Where to put generated files (packages.json and dists)?', ROOT . '/repositories/'),
-                new \Symfony\Component\Console\Input\InputOption('base-url', null, InputOption::VALUE_REQUIRED, 'Base URL used when accessing packages.json and dists', ROOTURL . '/repositories/'),
+                new InputOption('base-dir', null, InputOption::VALUE_REQUIRED, 'Where to put generated files (packages.json and dists)?', ROOT . '/repositories/'),
+                new InputOption('base-url', null, InputOption::VALUE_REQUIRED, 'Base URL used when accessing packages.json and dists', ROOTURL . '/repositories/'),
             ))
             ->setHelp('adds a new repository based on a composer json file');
     }

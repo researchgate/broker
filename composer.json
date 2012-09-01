@@ -18,7 +18,7 @@
         "slim/slim":"1.6.2",
         "dflydev/markdown":"dev-master"
     },
-    "bin": ["broker.php"],
+    "bin": ["broker"],
     "autoload":{
         "psr-0":{
             "rg":"src/"
