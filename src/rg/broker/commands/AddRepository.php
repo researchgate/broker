@@ -67,7 +67,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         $installer->setRunScripts(false);
         $installer->run();
 
-        $packages = array();
+        $packages = array('packages' => array());
         $dumper = new \Composer\Package\Dumper\ArrayDumper();
 
         $installedPackages = $this->getInstalledPackages($repositoryDir);
@@ -77,8 +77,10 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
             $package = $localRepos->findPackage($installedPackage['name'], $installedPackage['version']);
             $zipfileName = $this->createZipFile($repositoryDir, $package, $output, $processExecutor);
             $packageArray = $this->getPackageArray($repositoryDir, $repositoryUrl, $dumper, $package, $zipfileName);
-            $packages['packages'][$package->getName()][$package->getVersion()] = $packageArray;
+            $packages['packages'][$package->getPrettyName()][$package->getPrettyVersion()] = $packageArray;
         }
+
+        ksort($packages['packages'], SORT_STRING);
 
         $output->writeln('Writing packages.json');
         $repoJson = new \Composer\Json\JsonFile($repositoryDir . '/packages.json');
