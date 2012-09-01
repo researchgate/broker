@@ -106,7 +106,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
 	} else if (!empty($packageArray['source']['reference'])) {
 	    $reference = $packageArray['source']['reference'];
 	} else {
-	    throw new \Exception("No reference found");
+        $reference = ''; // e.g. zend packages
 	}
 
         unset($packageArray['installation-source']);
