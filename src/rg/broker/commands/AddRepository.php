@@ -71,9 +71,10 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         $dumper = new \Composer\Package\Dumper\ArrayDumper();
 
         $installedPackages = $this->getInstalledPackages($repositoryDir);
+        $localRepos = new \Composer\Repository\CompositeRepository($composer->getRepositoryManager()->getLocalRepositories());
         foreach ($installedPackages as $installedPackage) {
             /** @var \Composer\Package\PackageInterface $package  */
-            $package = $composer->getRepositoryManager()->findPackage($installedPackage['name'], $installedPackage['version']);
+            $package = $localRepos->findPackage($installedPackage['name'], $installedPackage['version']);
             $zipfileName = $this->createZipFile($repositoryDir, $package, $output, $processExecutor);
             $packageArray = $this->getPackageArray($repositoryDir, $repositoryUrl, $dumper, $package, $zipfileName);
             $packages['packages'][$package->getName()][$package->getVersion()] = $packageArray;
