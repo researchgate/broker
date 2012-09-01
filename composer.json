@@ -1,5 +1,4 @@
 {
-    "minimum-stability": "dev",
     "name": "rg/broker",
     "description":"Simple composer repository proxy",
     "keywords":["package", "repository", "proxy"],
@@ -19,6 +18,7 @@
         "slim/slim":"1.6.2",
         "dflydev/markdown":"dev-master"
     },
+    "bin": ["broker"],
     "autoload":{
         "psr-0":{
             "rg":"src/"

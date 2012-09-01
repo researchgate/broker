@@ -12,6 +12,7 @@ namespace rg\broker\commands;
 use rg\broker\customizations\ZipArchive;
 
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class AddRepository extends \Symfony\Component\Console\Command\Command {
@@ -19,10 +20,13 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
     protected function configure() {
         $this
             ->setName('broker:add')
+            ->setAliases(array('broker:build'))
             ->setDescription('adds a new repository based on a composer json file')
             ->setDefinition(array(
                 new \Symfony\Component\Console\Input\InputArgument('name', \Symfony\Component\Console\Input\InputArgument::REQUIRED),
                 new \Symfony\Component\Console\Input\InputArgument('composerUrl', \Symfony\Component\Console\Input\InputArgument::REQUIRED),
+                new InputOption('base-dir', null, InputOption::VALUE_REQUIRED, 'Where to put generated files (packages.json and dists)?', ROOT . '/repositories/'),
+                new InputOption('base-url', null, InputOption::VALUE_REQUIRED, 'Base URL used when accessing packages.json and dists', ROOTURL . '/repositories/'),
             ))
             ->setHelp('adds a new repository based on a composer json file');
     }
@@ -36,7 +40,8 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
 
         $composerUrl = $input->getArgument('composerUrl');
         $repositoryName = $input->getArgument('name');
-        $repositoryDir = ROOT . '/repositories/' . $repositoryName;
+        $repositoryDir = rtrim($input->getOption('base-dir'), '/') . '/'. $repositoryName;
+        $repositoryUrl = rtrim($input->getOption('base-url'), '/') . '/'. $repositoryName;
 
         $output->writeln('Creating repository ' . $repositoryName);
 
@@ -59,33 +64,42 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         $composer->getDownloadManager()->setDownloader('pear', new \rg\broker\customizations\PearDownloader($io));
 
         $installer = \Composer\Installer::create($io, $composer);
+        $installer->setRunScripts(false);
         $installer->run();
 
-        $packages = array();
+        $packages = array('packages' => array());
         $dumper = new \Composer\Package\Dumper\ArrayDumper();
 
         $installedPackages = $this->getInstalledPackages($repositoryDir);
+        $localRepos = new \Composer\Repository\CompositeRepository($composer->getRepositoryManager()->getLocalRepositories());
         foreach ($installedPackages as $installedPackage) {
             /** @var \Composer\Package\PackageInterface $package  */
-            $package = $composer->getRepositoryManager()->findPackage($installedPackage['name'], $installedPackage['version']);
+            $package = $localRepos->findPackage($installedPackage['name'], $installedPackage['version']);
             $zipfileName = $this->createZipFile($repositoryDir, $package, $output, $processExecutor);
-            $packageArray = $this->getPackageArray($repositoryName, $dumper, $package, $zipfileName);
-            $packages[$package->getName()]['versions'][$package->getVersion()] = $packageArray;
+            $packageArray = $this->getPackageArray($repositoryDir, $repositoryUrl, $dumper, $package, $zipfileName);
+            $packages['packages'][$package->getPrettyName()][$package->getPrettyVersion()] = $packageArray;
         }
+
+        ksort($packages['packages'], SORT_STRING);
 
         $output->writeln('Writing packages.json');
         $repoJson = new \Composer\Json\JsonFile($repositoryDir . '/packages.json');
         $repoJson->write($packages);
+
+        // clean up sources
+        $processExecutor->execute('rm -rf ' . escapeshellarg($repositoryDir . '/sources'));
     }
 
     /**
-     * @param string $repositoryName
+     * @param string $repositoryDir
+     * @param string $repositoryUrl
      * @param \Composer\Package\Dumper\ArrayDumper $dumper
      * @param \Composer\Package\PackageInterface $package
      * @param string $zipfileName
      * @return array
      */
-    protected function getPackageArray($repositoryName,
+    protected function getPackageArray($repositoryDir,
+                                       $repositoryUrl,
                                        \Composer\Package\Dumper\ArrayDumper $dumper,
                                        \Composer\Package\PackageInterface $package,
                                        $zipfileName) {
@@ -95,32 +109,20 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
 	} else if (!empty($packageArray['source']['reference'])) {
 	    $reference = $packageArray['source']['reference'];
 	} else {
-	    throw new \Exception("No reference found");
+        $reference = ''; // e.g. zend packages
 	}
 
+        unset($packageArray['installation-source']);
         unset($packageArray['source']);
         unset($packageArray['dist']);
 
-        // we have to manipulate the version to not have a dev prefix or suffix so that
-        // composer does not try to load the package from source but will load it from dist instead
-	    if ($package->isDev()) {
-            $packageArray['version'] = str_replace('-dev', '', $packageArray['version']);
-            $packageArray['version'] = str_replace('dev-', '', $packageArray['version']);
-            $packageArray['version'] = str_replace('x', '9999999', $packageArray['version']);
-            $packageArray['version_normalized'] = $packageArray['version'];
-        }
-
-        foreach ($packageArray['require'] as $requiredPackage => $requiredVersion) {
-            if ($requiredPackage === 'php') {
-                continue;
-            }
-            $packageArray['require'][$requiredPackage] = '*';
-        }
         $packageArray['dist'] = array(
             'type' => 'zip',
-            'url' => ROOTURL . '/repositories/' . $repositoryName . '/dists/' . $zipfileName . '.zip',
+            'url' => $repositoryUrl . '/dists/' . $zipfileName . '.zip',
             'reference' => $reference,
+            'shasum' => hash_file('sha1', $repositoryDir . '/dists/' . $zipfileName . '.zip'),
         );
+
         return $packageArray;
     }
 

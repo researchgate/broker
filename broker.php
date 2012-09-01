@@ -8,7 +8,7 @@
 * file that was distributed with this source code.
 */
 require __DIR__ . '/config.php';
-require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/autoload.php';
 
 $cli = new \Symfony\Component\Console\Application('rg\broker', '0.1.0');
 $cli->setCatchExceptions(true);
