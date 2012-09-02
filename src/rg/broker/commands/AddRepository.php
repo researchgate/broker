@@ -51,7 +51,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
             $processExecutor->execute('rm -rf ' . escapeshellarg($cacheDir));
         }
 
-        $output->writeln('Creating repository ' . $repositoryName);
+        $output->writeln(sprintf('Creating repository "%s"', $repositoryName));
 
         if (!is_dir($cacheDir)) {
             mkdir($cacheDir, 0777, true);
@@ -96,6 +96,8 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         }
         mkdir($targetDir, 0777, true);
         mkdir($targetDir . '/dists');
+
+        $output->writeln('Creating dists for packages');
 
         $packages = array('packages' => array());
         $dumper = new \Composer\Package\Dumper\ArrayDumper();
@@ -186,10 +188,11 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
             $zipPath = '.';
         }
 
+        $output->writeln('  - '.$zipfileName . '.zip');
+
         if (!class_exists('ZipArchive')) {
             $command = 'cd ' . escapeshellarg($rootPath) .
                 ' && zip -9 -r ' . escapeshellarg($targetDir . '/dists/' . $zipfileName . '.zip') . ' ' . $zipPath;
-            $output->writeln('Executing: ' . $command);
             $result = $process->execute($command);
 
             if ($result) {
@@ -197,8 +200,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
             }
         } else {
             $zipFile = $targetDir . '/dists/' . $zipfileName . '.zip';
-            $output->writeln("Use PHP ZipArchive to create Zip Archive: $zipFile");
-            
+
             $zipArchive = new ZipArchive();
             $zipArchive->addExcludeDirectory('.svn');
             $zipArchive->setArchiveBaseDir($rootPath);
