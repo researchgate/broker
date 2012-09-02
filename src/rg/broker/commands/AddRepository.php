@@ -60,7 +60,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         putenv('COMPOSER_VENDOR_DIR=' . $cacheDir);
         putenv('COMPOSER_BIN_DIR=' . $cacheDir . '/bin');
 
-        $output->writeln('Loading composer file ' . $composerUrl);
+        $output->writeln(sprintf('Loading composer file "%s"', $composerUrl));
 
         $json = new \Composer\Json\JsonFile($composerUrl);
         $jsonData = $originalJsonData = $json->read();
@@ -97,13 +97,14 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         mkdir($targetDir, 0777, true);
         mkdir($targetDir . '/dists');
 
-        $output->writeln('Creating dists for packages');
-
         $packages = array('packages' => array());
         $dumper = new \Composer\Package\Dumper\ArrayDumper();
 
         $installedPackages = $this->getInstalledPackages($cacheDir);
         $localRepos = new \Composer\Repository\CompositeRepository($composer->getRepositoryManager()->getLocalRepositories());
+
+        $output->writeln('Creating dists for packages');
+
         foreach ($installedPackages as $installedPackage) {
             /** @var \Composer\Package\PackageInterface $package  */
             $package = $localRepos->findPackage($installedPackage['name'], $installedPackage['version']);
@@ -227,7 +228,14 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         if (!$file->exists()) {
             throw new \Exception('no packages installed in repository');
         }
-        return $file->read();
+
+        $packages = $file->read();
+
+        usort($packages, function ($a, $b) {
+            return strnatcasecmp($a['name'], $b['name']);
+        });
+
+        return $packages;
     }
 
 }
