@@ -62,6 +62,19 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
 
         $output->writeln('Loading composer file ' . $composerUrl);
 
+        $json = new \Composer\Json\JsonFile($composerUrl);
+        $jsonData = $originalJsonData = $json->read();
+
+        // if 'require-only-dependencies-of' is found, rewrite json data to composer format
+        if (isset($originalJsonData['require-only-dependencies-of'])) {
+            $jsonData['require'] += $jsonData['require-only-dependencies-of'];
+            unset($jsonData['require-only-dependencies-of']);
+
+            $composerUrl = $cacheDir.'/broker.json';
+            $composerJson = new \Composer\Json\JsonFile($composerUrl);
+            $composerJson->write($jsonData);
+        }
+
         $io = new \Composer\IO\ConsoleIO($input, $output, $this->getHelperSet());
         $composer = \Composer\Factory::create($io, $composerUrl);
 
@@ -92,6 +105,13 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         foreach ($installedPackages as $installedPackage) {
             /** @var \Composer\Package\PackageInterface $package  */
             $package = $localRepos->findPackage($installedPackage['name'], $installedPackage['version']);
+
+            // skip if package was in 'require-only-dependencies-of' section
+            if (isset($originalJsonData['require-only-dependencies-of'][$package->getName()])
+             || isset($originalJsonData['require-only-dependencies-of'][$package->getPrettyName()])) {
+                continue;
+            }
+
             $zipfileName = $this->createZipFile($cacheDir, $targetDir, $package, $output, $processExecutor);
             $packageArray = $this->getPackageArray($targetDir, $repositoryUrl, $dumper, $package, $zipfileName);
             $packages['packages'][$package->getPrettyName()][$package->getPrettyVersion()] = $packageArray;
