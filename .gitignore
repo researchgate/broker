@@ -2,6 +2,7 @@
 .settings
 .project
 .buildpath
+cache
 composer.phar
 vendor
 repositories
