@@ -177,7 +177,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
                                      \Composer\Package\PackageInterface $package,
                                      OutputInterface $output,
                                      \Composer\Util\ProcessExecutor $process) {
-        $zipfileName = str_replace('/', '_', $package->getPrettyName());
+        $zipfileName = str_replace('/', '_', strtolower($package->getPrettyName()));
         if ($package->getDistType() === 'pear') {
             $rootPath = $cacheDir;
             $zipPath = escapeshellarg($package->getPrettyName());
