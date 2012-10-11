@@ -21,6 +21,11 @@ use \Composer\Installer\PearInstaller as ComposerPearInstaller;
  */
 class PearInstaller extends ComposerPearInstaller
 {
+    /**
+     * switch type to library since otherwise the extraction of the cache does not work as it is supposed to
+     *
+     * {@inheritDoc}
+     */
     public function install(InstalledRepositoryInterface $repo, PackageInterface $package)
     {
         if (method_exists($package, 'setType')) {
@@ -28,9 +33,14 @@ class PearInstaller extends ComposerPearInstaller
             $package->setType('library');
         }
 
-        parent::install($repo, $package);
+        return parent::install($repo, $package);
     }
 
+    /**
+     * switch type to library since otherwise the extraction of the cache does not work as it is supposed to
+     *
+     * {@inheritDoc}
+     */
     public function update(InstalledRepositoryInterface $repo, PackageInterface $initial, PackageInterface $target)
     {
         if (method_exists($target, 'setType')) {
@@ -38,10 +48,16 @@ class PearInstaller extends ComposerPearInstaller
             $package->setType('library');
         }
 
-        parent::update($repo, $initial, $target);
+        return parent::update($repo, $initial, $target);
     }
 
-
+    /**
+     * add pear binary list to package, in order to generate binary entries in the resulting packages.json file
+     *
+     * @param PackageInterface $package
+     *
+     * @return array
+     */
     protected function getBinaries(PackageInterface $package)
     {
         $binaries = parent::getBinaries($package);
