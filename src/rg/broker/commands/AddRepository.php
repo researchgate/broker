@@ -78,8 +78,12 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         $io = new \Composer\IO\ConsoleIO($input, $output, $this->getHelperSet());
         $composer = \Composer\Factory::create($io, $composerUrl);
 
+        /*
+         * add custom pear installer to fix binary and setup issues
+         */
         $customPearInstaller = new \rg\broker\customizations\PearInstaller($io, $composer, 'pear-library');
         $composer->getInstallationManager()->addInstaller($customPearInstaller);
+
         $composer->setLocker(new \rg\broker\customizations\Locker());
 
         $installer = \Composer\Installer::create($io, $composer);
