@@ -23,13 +23,13 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
             ->setAliases(array('broker:build'))
             ->setDescription('adds a new repository based on a composer json file')
             ->setDefinition(array(
-                new \Symfony\Component\Console\Input\InputArgument('name', \Symfony\Component\Console\Input\InputArgument::REQUIRED),
-                new \Symfony\Component\Console\Input\InputArgument('composerUrl', \Symfony\Component\Console\Input\InputArgument::REQUIRED),
-                new InputOption('clean-cache', null, InputOption::VALUE_NONE, 'If set, cache will be removed first'),
-                new InputOption('cache-dir', null, InputOption::VALUE_REQUIRED, 'Where to put cached sources?', ROOT . '/cache/'),
-                new InputOption('base-dir', null, InputOption::VALUE_REQUIRED, 'Where to put generated files (packages.json and dists)?', ROOT . '/repositories/'),
-                new InputOption('base-url', null, InputOption::VALUE_REQUIRED, 'Base URL used when accessing packages.json and dists', ROOTURL . '/repositories/'),
-            ))
+            new \Symfony\Component\Console\Input\InputArgument('name', \Symfony\Component\Console\Input\InputArgument::REQUIRED),
+            new \Symfony\Component\Console\Input\InputArgument('composerUrl', \Symfony\Component\Console\Input\InputArgument::REQUIRED),
+            new InputOption('clean-cache', null, InputOption::VALUE_NONE, 'If set, cache will be removed first'),
+            new InputOption('cache-dir', null, InputOption::VALUE_REQUIRED, 'Where to put cached sources?', ROOT . '/cache/'),
+            new InputOption('base-dir', null, InputOption::VALUE_REQUIRED, 'Where to put generated files (packages.json and dists)?', ROOT . '/repositories/'),
+            new InputOption('base-url', null, InputOption::VALUE_REQUIRED, 'Base URL used when accessing packages.json and dists', ROOTURL . '/repositories/'),
+        ))
             ->setHelp('adds a new repository based on a composer json file');
     }
 
@@ -78,8 +78,9 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         $io = new \Composer\IO\ConsoleIO($input, $output, $this->getHelperSet());
         $composer = \Composer\Factory::create($io, $composerUrl);
 
+        $customPearInstaller = new \rg\broker\customizations\PearInstaller($io, $composer, 'pear-library');
+        $composer->getInstallationManager()->addInstaller($customPearInstaller);
         $composer->setLocker(new \rg\broker\customizations\Locker());
-        $composer->getDownloadManager()->setDownloader('pear', new \rg\broker\customizations\PearDownloader($io));
 
         $installer = \Composer\Installer::create($io, $composer);
         $installer->setRunScripts(false);
@@ -111,7 +112,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
 
             // skip if package was in 'require-only-dependencies-of' section
             if (isset($originalJsonData['require-only-dependencies-of'][$package->getName()])
-             || isset($originalJsonData['require-only-dependencies-of'][$package->getPrettyName()])) {
+                || isset($originalJsonData['require-only-dependencies-of'][$package->getPrettyName()])) {
                 continue;
             }
 
@@ -141,13 +142,13 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
                                        \Composer\Package\PackageInterface $package,
                                        $zipfileName) {
         $packageArray = $dumper->dump($package);
-	if (!empty($packageArray['dist']['reference'])) {
+        if (!empty($packageArray['dist']['reference'])) {
             $reference = $packageArray['dist']['reference'];
-	} else if (!empty($packageArray['source']['reference'])) {
-	    $reference = $packageArray['source']['reference'];
-	} else {
-        $reference = ''; // e.g. zend packages
-	}
+        } else if (!empty($packageArray['source']['reference'])) {
+            $reference = $packageArray['source']['reference'];
+        } else {
+            $reference = ''; // e.g. zend packages
+        }
 
         unset($packageArray['installation-source']);
         unset($packageArray['source']);
@@ -178,6 +179,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
                                      OutputInterface $output,
                                      \Composer\Util\ProcessExecutor $process) {
         $zipfileName = str_replace('/', '_', strtolower($package->getPrettyName()));
+
         if ($package->getDistType() === 'pear') {
             $rootPath = $cacheDir;
             $zipPath = escapeshellarg($package->getPrettyName());
@@ -208,7 +210,7 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
 
             if (($result = $zipArchive->open($zipFile, ZipArchive::OVERWRITE)) === TRUE) {
                 $zipArchive->addDir($rootPath);
-                
+
                 $zipArchive->close();
             } else {
                 throw new \Exception('could not create dist package for ' . $package->getName() . ' error code: ' . $result);
