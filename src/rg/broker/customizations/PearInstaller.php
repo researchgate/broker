@@ -1,15 +1,10 @@
 <?php
-
 /*
- * This file is part of the Voycer ${PROJECT}.
- *
- * (c) Voycer AG <info@voycer.com>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  */
-
 namespace rg\broker\customizations;
 
 use \Composer\Repository\InstalledRepositoryInterface;
