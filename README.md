@@ -14,7 +14,7 @@ Clone broker in a directory that is accessable by your webserver:
 
     git clone git://github.com/researchgate/broker.git
 
-Download composer inter broker's root directory:
+Download composer into broker's root directory:
 
     cd broker
     wget http://getcomposer.org/composer.phar
