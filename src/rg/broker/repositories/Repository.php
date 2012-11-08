@@ -8,6 +8,7 @@
  * file that was distributed with this source code.
  */
 namespace rg\broker\repositories;
+use Composer\Package\Loader\ArrayLoader;
 
 class Repository extends \Composer\Repository\ComposerRepository {
 
@@ -18,6 +19,8 @@ class Repository extends \Composer\Repository\ComposerRepository {
         $this->url = ROOT . '/repositories/' .$name;
         $this->cache = new \rg\broker\customizations\Cache();
         $this->io = new \Composer\IO\NullIO();
+        $this->loader = new ArrayLoader();
+        $this->options = array();
     }
 
     public function getName() {
