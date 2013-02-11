@@ -4,13 +4,13 @@ broker
 broker is a full repository proxy for [composer](https://github.com/composer/composer). It takes
 a composer file, downloads all requirements and all dependencies, and then publishes a new
 repository with all these packages. Instead of [packagist](https://github.com/composer/packagist)
-or [satis](https://github.com/composer/satis), all packages, including dist and source filles will
+or [satis](https://github.com/composer/satis), all packages, including dist and source files will
 be served directly by broker.
 
 Installation
 ------------
 
-Clone broker in a directory that is accessable by your webserver:
+Clone broker in a directory that is accessible by your webserver:
 
     git clone git://github.com/researchgate/broker.git
 
@@ -19,7 +19,7 @@ Download composer into broker's root directory:
     cd broker
     wget http://getcomposer.org/composer.phar
 
-Install all dependecies of broker:
+Install all dependencies of broker:
 
     php composer.phar install
 
