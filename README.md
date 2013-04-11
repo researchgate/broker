@@ -1,6 +1,8 @@
 broker
 ======
 
+Note: this project is not actively maintained anymore. Since [satis](http://getcomposer.org/doc/articles/handling-private-packages-with-satis.md#downloads) supports a similar functionality now, you should use satis instead.
+
 broker is a full repository proxy for [composer](https://github.com/composer/composer). It takes
 a composer file, downloads all requirements and all dependencies, and then publishes a new
 repository with all these packages. Instead of [packagist](https://github.com/composer/packagist)
