@@ -106,13 +106,13 @@ class AddRepository extends \Symfony\Component\Console\Command\Command {
         $dumper = new \Composer\Package\Dumper\ArrayDumper();
 
         $installedPackages = $this->getInstalledPackages($cacheDir);
-        $localRepos = new \Composer\Repository\CompositeRepository($composer->getRepositoryManager()->getLocalRepositories());
+        $localRepo = $composer->getRepositoryManager()->getLocalRepository();
 
         $output->writeln('Creating dists for packages');
 
         foreach ($installedPackages as $installedPackage) {
             /** @var \Composer\Package\PackageInterface $package  */
-            $package = $localRepos->findPackage($installedPackage['name'], $installedPackage['version']);
+            $package = $localRepo->findPackage($installedPackage['name'], $installedPackage['version']);
 
             // skip if package was in 'require-only-dependencies-of' section
             if (isset($originalJsonData['require-only-dependencies-of'][$package->getName()])
